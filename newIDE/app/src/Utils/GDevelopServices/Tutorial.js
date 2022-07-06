@@ -7,6 +7,12 @@ export type Tutorial = {|
   title: string,
   description: string,
   type: 'video' | 'text',
+  category:
+    | 'game-mechanic'
+    | 'full-game'
+    | 'official-beginner'
+    | 'official-intermediate'
+    | 'official-advanced',
   link: string,
   thumbnailUrl: string,
 |};

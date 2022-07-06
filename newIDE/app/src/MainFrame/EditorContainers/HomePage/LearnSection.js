@@ -2,11 +2,10 @@
 import * as React from 'react';
 import { Line, Column } from '../../../UI/Grid';
 import Text from '../../../UI/Text';
-import { TutorialsList } from '../../../Tutorial/TutorialsList';
 import Window from '../../../Utils/Window';
 import { Trans } from '@lingui/macro';
 import PublishIcon from '@material-ui/icons/Publish';
-import { LineStackLayout, ResponsiveLineStackLayout } from '../../../UI/Layout';
+import { LineStackLayout } from '../../../UI/Layout';
 import { type HomeTab } from './HomePageMenu';
 import { isUserflowRunning } from '../../Onboarding/OnboardingDialog';
 import { isMobile } from '../../../Utils/Platform';
@@ -22,6 +21,10 @@ import { CardWidget, SMALL_WIDGET_SIZE } from './CardWidget';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import { makeStyles } from '@material-ui/core/styles';
+import { TutorialContext } from '../../../Tutorial/TutorialContext';
+import TutorialsLine from './Tutorials/TutorialsLine';
+import PlaceholderError from '../../../UI/PlaceholderError';
+import PlaceholderLoader from '../../../UI/PlaceholderLoader';
 const electron = optionalRequire('electron');
 
 const useStyles = makeStyles({
@@ -102,6 +105,19 @@ const LearnSection = ({
     },
   ].filter(Boolean);
 
+  const {
+    tutorials,
+    fetchTutorials,
+    error: tutorialLoadingError,
+  } = React.useContext(TutorialContext);
+
+  React.useEffect(
+    () => {
+      fetchTutorials();
+    },
+    [fetchTutorials]
+  );
+
   return (
     <SectionContainer title={<Trans>Help and guides</Trans>}>
       <SectionRow>
@@ -133,45 +149,122 @@ const LearnSection = ({
           </GridList>
         </Line>
       </SectionRow>
-      <SectionRow>
-        <LineStackLayout
-          justifyContent="space-between"
-          alignItems="center"
-          noMargin
-          expand
-        >
-          <Column noMargin>
-            <Text size="title">
-              <Trans>Guides and tutorials</Trans>
-            </Text>
-          </Column>
-          <Column noMargin>
-            {windowWidth === 'large' && (
-              <FlatButton
-                key="submit-example"
-                onClick={() => {
-                  Window.openExternalURL(
-                    'https://github.com/GDevelopApp/GDevelop-examples/issues/new/choose'
-                  );
-                }}
-                primary
-                icon={<PublishIcon />}
-                label={<Trans>Submit your project as an example</Trans>}
-              />
-            )}
-          </Column>
-        </LineStackLayout>
-        <Line noMargin>
-          <Text noMargin>
-            <Trans>Learn by doing</Trans>
-          </Text>
-        </Line>
-      </SectionRow>
-      <SectionRow>
-        <ResponsiveLineStackLayout expand noMargin>
-          <TutorialsList />
-        </ResponsiveLineStackLayout>
-      </SectionRow>
+      {tutorialLoadingError ? (
+        <PlaceholderError onRetry={fetchTutorials}>
+          <Trans>
+            Can't load the tutorials. Verify your internet connection or retry
+            later.
+          </Trans>
+        </PlaceholderError>
+      ) : !tutorials ? (
+        <PlaceholderLoader />
+      ) : (
+        <>
+          <SectionRow>
+            <LineStackLayout
+              justifyContent="space-between"
+              alignItems="center"
+              noMargin
+              expand
+            >
+              <Column noMargin>
+                <Text size="title">
+                  <Trans>Guides and tutorials</Trans>
+                </Text>
+              </Column>
+              <Column noMargin>
+                {windowWidth === 'large' && (
+                  <FlatButton
+                    key="submit-example"
+                    onClick={() => {
+                      Window.openExternalURL(
+                        'https://github.com/GDevelopApp/GDevelop-examples/issues/new/choose'
+                      );
+                    }}
+                    primary
+                    icon={<PublishIcon />}
+                    label={<Trans>Submit your project as an example</Trans>}
+                  />
+                )}
+              </Column>
+            </LineStackLayout>
+            <Line noMargin>
+              <Text noMargin>
+                <Trans>Learn by doing</Trans>
+              </Text>
+            </Line>
+          </SectionRow>
+          <SectionRow>
+            <TutorialsLine
+              title={<Trans>Entire games</Trans>}
+              description={<Trans>Make complete games step by step</Trans>}
+              tutorials={tutorials
+                .filter(tutorial => tutorial.category === 'full-game')
+                .slice(0, 5)}
+            />
+          </SectionRow>
+          <SectionRow>
+            <TutorialsLine
+              title={<Trans>Specific game mechanics</Trans>}
+              description={
+                <Trans>
+                  Find how to implement the most common game mechanics and more!
+                </Trans>
+              }
+              tutorials={tutorials
+                .filter(tutorial => tutorial.category === 'game-mechanic')
+                .slice(0, 5)}
+            />
+          </SectionRow>
+          <SectionRow>
+            <Line noMargin>
+              <Text size="title">
+                <Trans>Courses</Trans>
+              </Text>
+            </Line>
+            <Line noMargin>
+              <Text noMargin>
+                <Trans>
+                  Learn everything about GDevelop from the ground up
+                </Trans>
+              </Text>
+            </Line>
+          </SectionRow>
+          <SectionRow>
+            <TutorialsLine
+              title={<Trans>Beginner course</Trans>}
+              description={
+                <Trans>Learn the fundamental principles of GDevelop</Trans>
+              }
+              tutorials={tutorials
+                .filter(tutorial => tutorial.category === 'official-beginner')
+                .slice(0, 5)}
+            />
+          </SectionRow>
+          <SectionRow>
+            <TutorialsLine
+              title={<Trans>Intermediate course</Trans>}
+              description={
+                <Trans>Learn all the game-building mechanics of GDevelop</Trans>
+              }
+              tutorials={tutorials
+                .filter(
+                  tutorial => tutorial.category === 'official-intermediate'
+                )
+                .slice(0, 5)}
+            />
+          </SectionRow>
+          <SectionRow>
+            <TutorialsLine
+              title={<Trans>Advanced course</Trans>}
+              description={<Trans>The icing on the cake</Trans>}
+              tutorials={tutorials
+                .filter(tutorial => tutorial.category === 'official-advanced')
+                .slice(0, 5)}
+            />
+          </SectionRow>
+        </>
+      )}
     </SectionContainer>
   );
 };
